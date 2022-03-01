@@ -21,7 +21,13 @@ const dependentSchema = new mongoose.Schema({
     },
     sex: {
         type: String,
-        trim: true
+        trim: true,
+        uppercase:true
+    },
+    church: {
+        type: String,
+        trim: true,
+        uppercase:true
     },
     observation: {
         type: String,

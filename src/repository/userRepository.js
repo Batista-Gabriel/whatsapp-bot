@@ -48,7 +48,27 @@ module.exports = {
             return { error: "Registration failed" }
         }
     },
+    async updateUserType(userId, userType) {
 
+        if (!userId || !userType)
+            return { error: "userId or UserType was not given" }
+
+        const user = await User.find({ _id: userId })
+
+        if (!user) {
+            return { error: "user not found" }
+        }
+
+        let userTypes = await userTypeRepository.list()
+
+        for (let type of userTypes) {
+            if (type.name.toLowerCase().includes(userType.toLowerCase().trim())) {
+                await User.updateOne({ _id: userId }, { userType: type._id })
+                return await User.findOne({ _id: userId }).populate('userType')
+            }
+        }
+        return { error: "userType not found" }
+    },
     async find(id) {
 
         if (id.length != 24)
@@ -68,7 +88,7 @@ module.exports = {
 
     async findByNumber(number) {
 
-        let response = await User.findOne({phoneNumber: number })
+        let response = await User.findOne({ phoneNumber: number })
             .populate('userType')
             .lean().then((user) => {
 
@@ -80,11 +100,44 @@ module.exports = {
 
     },
 
+    async findByUsername(username) {
 
-    async list(page = 1, sortBy) {
+        let response = await User.findOne({ username })
+            .select('+password')
+            .populate('userType')
+            .lean().then((user) => {
+
+                if (!user)
+                    return { error: "user not found" }
+                return user
+            })
+        return response
+
+    },
+
+    async findByUserType(userType) {
+
+        let response = []
+        await User.find({})
+            .populate('userType')
+            .lean().then((user) => {
+
+                if (!user)
+                    return { error: "user not found" }
+
+                if (user.userType.name == userType)
+                    response.push(user)
+            })
+        return response
+
+    },
+
+    async list(page = 1, sortBy, limit = 1000) {
         return await User.paginate({}, {
-            sort:sortBy,
-            page: page, limit: 10, populate: [ {
+            sort: sortBy,
+            page,
+            limit,
+            populate: [{
                 path: "userType",
                 select: "name"
             }],
@@ -92,7 +145,7 @@ module.exports = {
             if (err)
                 return { error: err }
             // console.log(result)
-            return result
+            return result.docs
         });
     },
 

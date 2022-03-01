@@ -25,30 +25,21 @@ module.exports = {
     async update(req, res) {
 
         try {
-            let authorization = req.headers.authorization
-            let auth = authMiddleware(authorization)
-            if (auth.error)
-                return res.status("401").send(auth)
             const userId = req.params.id
-            const { name, username, phoneNumber } = req.body
-            let data = { name, username, phoneNumber }
+            const { name, username, phoneNumber, password } = req.body
+            let data = { name, username, phoneNumber, password }
 
             const isDataEmpty = Object.values(data).every(x => x === null || x === '');
 
             if (isDataEmpty)
                 return res.status(400).send("Data not found")
 
-            if (isSameUser(userId, auth.userId) || isAdmin(auth.userType)) {
-                let response = await userRepository.update(userId, data)
-                if (response.error)
-                    return res.status(404).send(response)
-                else
-                    return res.send(response)
+            let response = await userRepository.update(userId, data)
+            if (response.error)
+                return res.status(404).send(response)
+            else
+                return res.send(response)
 
-            } else {
-
-                return res.status(401).send("Unauthorized")
-            }
 
         } catch (e) {
             await createLog(e, "Error")
@@ -57,8 +48,8 @@ module.exports = {
 
     //once user logs in, will receive an authentication token 
     async authenticate(req, res) {
-        const { email, password } = req.body;
-        let response = await authenticateUser(email, password)
+        const { username, password } = req.body;
+        let response = await authenticateUser(username, password)
         if (response.error)
             return res.status(400).send(response)
         else {
@@ -98,6 +89,22 @@ module.exports = {
 
     },
 
+    async findByNumber(req, res) {
+        let authorization = req.headers.authorization
+        let { number } = req.params
+        // let auth = authMiddleware(authorization)
+        // if (auth.error)
+        //     return res.status("401").send(auth)
+
+        let response = await userRepository.findByNumber(number)
+        if (response.error)
+            return res.status(404).send(response)
+        else
+            return res.send(response)
+
+
+
+    },
     async checkAuth(req, res) {
 
         let authorization = req.headers.authorization
@@ -125,10 +132,10 @@ module.exports = {
 
     async list(req, res) {
 
-        const { page } = req.query
+        const { page, limit } = req.query
         const { sortBy } = req.body
 
-        res.send(await userRepository.list(page, sortBy))
+        res.send(await userRepository.list(page, sortBy, limit))
 
     },
 
@@ -175,8 +182,8 @@ module.exports = {
 }
 
 
-async function authenticateUser(email, password) {
-    let response = await userRepository.findByEmail(email)
+async function authenticateUser(username, password) {
+    let response = await userRepository.findByUsername(username)
     if (response.error)
         return response
     else {

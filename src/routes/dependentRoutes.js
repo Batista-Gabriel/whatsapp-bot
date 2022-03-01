@@ -4,9 +4,10 @@ const dependentController = require('../controller/dependentController');
 const { checkAdminPrivilege } = require('../middleware/auth');
 
 
+routes.use(checkAdminPrivilege)
 routes.post('', dependentController.create);
 routes.get('/number/:number', dependentController.findByNumber);
-// routes.use(checkAdminPrivilege)
+routes.get('/username/:username', dependentController.findByUsername);
 routes.get('/:id', dependentController.find);
 routes.get('', dependentController.list);
 routes.put('/:id', dependentController.update);

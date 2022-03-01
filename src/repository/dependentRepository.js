@@ -29,7 +29,6 @@ module.exports = {
             if (!foundDependent)
                 return { error: "user not Found" }
 
-
             for (info in input) {
                 if (input[info] == null)
                     delete input[info]
@@ -60,6 +59,20 @@ module.exports = {
 
     },
 
+    async findByUsername(username) {
+
+
+        let response = await Dependent.findOne({username: username })
+            .populate('responsible')
+            .lean().then((dependent) => {
+
+                if (!dependent)
+                    return { error: "dependent not found" }
+                return dependent
+            })
+        return response
+
+    },
     async findByNumber(number) {
 
         let response = []
@@ -91,7 +104,7 @@ module.exports = {
             sort: sortBy,
             page: page, limit: 10, populate: [{
                 path: "responsible",
-                select: "name"
+                select: "name , phoneNumber"
             }],
         }, function (err, result) {
             if (err)

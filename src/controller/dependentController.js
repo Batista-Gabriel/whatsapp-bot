@@ -1,11 +1,6 @@
-const jwt = require("jsonwebtoken")
 const { authMiddleware } = require('../middleware/auth')
 const { isAdmin } = require("../utils/utils")
 const dependentRepository = require("../repository/dependentRepository")
-
-function generateToken(params = {}, expiration) {
-    return jwt.sign(params, process.env.SECRET, { expiresIn: expiration })
-}
 
 module.exports = {
     async create(req, res) {
@@ -83,6 +78,16 @@ module.exports = {
 
     },
 
+    async findByUsername(req, res) {
+        const { username } = req.params
+
+            let response = await dependentRepository.findByUsername(username)
+            if (response.error)
+                return res.status(404).send(response)
+            else
+                return res.send(response)
+
+    },
     async list(req, res) {
 
         const { page } = req.query
