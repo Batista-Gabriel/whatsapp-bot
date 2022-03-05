@@ -22,7 +22,6 @@ const dependentSchema = new mongoose.Schema({
     sex: {
         type: String,
         trim: true,
-        uppercase:true
     },
     church: {
         type: String,
@@ -52,6 +51,9 @@ dependentSchema.plugin(mongoosePaginate)
 dependentSchema.pre('updateOne', async function (next) {
     if (this._update.name)
         this._update.name = capitalizeName(this._update.name)
+
+        if (this._update.sex)
+            this._update.sex = capitalizeName(this._update.sex)
 
     if (this._update.createdAt)
         delete this._update.createdAt

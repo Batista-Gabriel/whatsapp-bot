@@ -96,7 +96,7 @@ async function listen(client) {
 
 
                     // if it is a command
-                    if (message.body.includes("\\") || message.body.includes("/")) {
+                    if (message.body.includes("\\") || message.body == "comandos") {
                         let commands = responses.commands
 
                         // if user does not  have mod power
@@ -123,10 +123,33 @@ async function listen(client) {
                                         {
                                             if (command.tag == "confirm") {
                                                 await setConfirmation(message.from, info, true)
-                                            } else if (command.tag == "deny") {
+                                            }
+                                            else if (command.tag == "deny") {
                                                 await setConfirmation(message.from, info, false)
 
                                             }
+                                            else if (command.tag == "contact") {
+                                                let username = info
+                                                let dependent = await dependentRepository.findByUsername(username)
+                                                if (dependent.error) {
+                                                    let title = command.error.replace("{username}", username)
+                                                    await wpClient.sendText(message.from, title)
+                                                    return
+                                                }
+                                                else if (!dependent.responsible) {
+                                                    let title = command.contactError.replace("{username}", username).replace("{name}", dependent.name)
+                                                    await wpClient.sendText(message.from, title)
+                                                    return
+                                                } else {
+                                                    console.log(dependent.responsible)
+                                                    let title = command.title.replace("{username}", username).replace("{name}", dependent.name)
+                                                    await wpClient.sendText(message.from, title)
+                                                    await wpClient.sendContactVcard(message.from, dependent.responsible.phoneNumber + "@c.us", dependent.responsible.name).catch(e => console.log(e))
+                                                    return
+                                                }
+
+                                            }
+
                                             else if (command.tag == "search") {
                                                 let username = info
                                                 let dependent = await dependentRepository.findByUsername(username)
@@ -148,6 +171,27 @@ async function listen(client) {
                                                     await wpClient.sendText(message.from, title)
                                                 }
                                             }
+                                            else if (command.tag == "searchByName") {
+                                                let name = info
+                                                let dependents = await dependentRepository.findByName(name)
+
+                                                if (dependents.length < 1) {
+                                                    let title = command.error.replace("{name}", name)
+                                                    await wpClient.sendText(message.from, title)
+                                                } else {
+                                                    let text = command.title
+                                                    for (let i in dependents) {
+                                                        let dependent = dependents[i]
+                                                        text += command.dependent
+                                                            .replace("{name}", dependent.name)
+                                                            .replace("{number}", Number(i) + 1)
+                                                            .replace("{birthday}", dependent.birthday)
+                                                            .replace("{username}", dependent.username)
+
+                                                    }
+                                                    await wpClient.sendText(message.from, text)
+                                                }
+                                            }
                                         }
 
                                         // commands for administrator
@@ -161,7 +205,8 @@ async function listen(client) {
                                             }
                                             else if (command.tag == "turnMod") {
                                                 await setUserType(message.from, info, "Moderator")
-                                            } else if (command.tag == "removeAdmin" || command.tag == "removeMod") {
+                                            }
+                                            else if (command.tag == "removeAdmin" || command.tag == "removeMod") {
                                                 await setUserType(message.from, info, "Default")
                                             }
                                         }
@@ -191,12 +236,12 @@ async function listen(client) {
                         let lastDependent = dependentList[dependentList.length - 1]
                         let dependentName = lastDependent.name.trim().split(" ")[0]
                         // canceling the registration
-
-                        let cancelQuestion = responses.registrationTxt.find(question => { return question.tag == "cancel" })
-                        // cancel tag
                         if (!lastDependent.birthday || !lastDependent.sex || !lastDependent.observation || !lastDependent.church) {
 
 
+
+                            // cancel tag
+                            let cancelQuestion = responses.registrationTxt.find(question => { return question.tag == "cancel" })
                             for (let question of cancelQuestion.question) {
                                 if (message.body.toLowerCase().trim().includes(question)) {
                                     await dependentRepository.delete(lastDependent._id)
@@ -212,11 +257,22 @@ async function listen(client) {
                                 let birthdayQuestion = responses.registrationTxt.find(question => { return question.tag == "birthday" })
 
                                 let birthday = getHelperInfo(message, birthdayQuestion.helper)
-
+                                let [day, month, year] = birthday.split("/")
+                                day = day.trim()
+                                month = month.trim()
+                                year = year.trim()
                                 if (!birthday) {
+
                                     let title = birthdayQuestion.title.replace("{dependent}", dependentName)
                                     client.sendText(message.from, title)
                                 } else {
+
+                                    // if format error
+                                    if (day.length < 1 || day.length > 2 || month.length < 1 || day.length > 2 || year.length != 4 || isNaN(day) || isNaN(month) || isNaN(year)) {
+                                        client.sendText(message.from, "        *Erro* \n\nO formato para a data de nascimento é dia/mês/ ano")
+                                        return
+                                    }
+
                                     await dependentRepository.update(lastDependent._id, { birthday })
 
                                     let sexQuestion = responses.registrationTxt.find(question => { return question.tag == "sex" })
@@ -323,6 +379,7 @@ async function listen(client) {
 
                         for (let question of responsibleErrorQuestion.question) {
                             if (message.body.toLowerCase().trim() == question) {
+                                wpClient.sendText(message.from, responsibleErrorQuestion.title)
                                 return
                             }
                         }
@@ -399,6 +456,7 @@ async function listen(client) {
 
                         if (question) {
                             client.sendText(message.from, saveQuestion.title)
+                            await client.pinChat(message.from, true, false)
                             return
                         }
 
@@ -559,12 +617,16 @@ async function setUserType(sender, number, userType) {
         if (user2.userType.name.toLowerCase() == "moderator") userType = "Moderador"
         if (user.userType.name != user2.userType.name) {
             let userText = `         *Tipo de usuário alterado* \n
-        O seu tipo de usuário foi alterado de ` + userType1 + ` para ` + userType + ` por `+ admin.name.split(" ")[0] + " " + admin.name.split(" ")[1]
+        O seu tipo de usuário foi alterado de ` + userType1 + ` para ` + userType + ` por ` + admin.name.split(" ")[0] + " " + admin.name.split(" ")[1]
+
+            if (userType != "Padrão")
+                userText += "\n Agora você tem acesso aos comandos.\nDigite \\comandos para visualizar a lista."
+
+            wpClient.sendText(user.phoneNumber + "@c.us", userText)
 
             let adminText = `         *Tipo de usuário alterado* \n
         O tipo de usuário de `+ user2.name + ` (` + user.phoneNumber + `) foi alterado de ` + userType1 + ` para ` + userType
 
-            wpClient.sendText(user.phoneNumber + "@c.us", userText)
             wpClient.sendText(sender, adminText)
             return
         }

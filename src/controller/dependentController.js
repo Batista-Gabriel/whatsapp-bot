@@ -78,6 +78,17 @@ module.exports = {
 
     },
 
+    async findByName(req, res) {
+        const { name } = req.params
+
+            let response = await dependentRepository.findByName(name)
+            if (response.error)
+                return res.status(404).send(response)
+            else
+                return res.send(response)
+
+    },
+
     async findByUsername(req, res) {
         const { username } = req.params
 

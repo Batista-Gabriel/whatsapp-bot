@@ -6,6 +6,7 @@ const { checkAdminPrivilege } = require('../middleware/auth');
 
 routes.use(checkAdminPrivilege)
 routes.post('', dependentController.create);
+routes.get('/name/:name', dependentController.findByName);
 routes.get('/number/:number', dependentController.findByNumber);
 routes.get('/username/:username', dependentController.findByUsername);
 routes.get('/:id', dependentController.find);

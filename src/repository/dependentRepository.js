@@ -62,7 +62,7 @@ module.exports = {
     async findByUsername(username) {
 
 
-        let response = await Dependent.findOne({username: username })
+        let response = await Dependent.findOne({ username: username })
             .populate('responsible')
             .lean().then((dependent) => {
 
@@ -73,6 +73,31 @@ module.exports = {
         return response
 
     },
+
+    async findByName(name) {
+        name = name.trim()
+        let response = []
+        await Dependent.paginate({}, {
+            sort: { name: 1 },
+            populate: [{
+                path: "responsible",
+            }],
+        }, function (err, result) {
+            if (err)
+                return { error: err }
+            result.docs.forEach(dependent => {
+                if (dependent.name.toLowerCase().includes(name)) {
+                    response.push(dependent)
+                }
+            })
+            return result
+        });
+
+        return response
+
+    },
+
+
     async findByNumber(number) {
 
         let response = []

@@ -5,7 +5,8 @@ let initialTxt = [
         question: [],
         tag: "start",
         title: `        *Olá!, {username}! Como posso ajudar?* \n
-    Este é o beta de um bot para eventos. Algumas funcionalidades não foram implementadas 
+        Aqui você pode fazer a inscrição de adolescentes no acampa, ver a situação da inscrição deles e tirar dúvidas.
+    Este é apenas um beta de um programa. Algumas funcionalidades ainda não foram implementadas. 
     `,
         description: "Clique no botão para interagir",
 
@@ -46,13 +47,6 @@ let initialTxt = [
 
 let generalTxt = [
 
-    //questions with functions
-    {
-        question: ["pergunta:", "pergunta :"],
-        title: `        *Pergunta enviada* \n
-    Te responderemos assim que possível.😃
-    `,
-    },
 
     // question part 1
     {
@@ -171,8 +165,7 @@ let registrationTxt = [
         question: ["não sou"],
         tag: "responsibleError",
         title: `       *Erro* \n
-    Por questão de segurança, o cadastro só pode ser feito no celular do responsável\n
-    O número é salvo para futuro contato.
+    Por questão de segurança, o cadastro só pode ser feito no celular do responsável, pois o número é salvo para futuro contato.
     `,
     },
 
@@ -250,7 +243,7 @@ let registrationTxt = [
     Exemplo: 
     Observação: toma remédio antes de dormir
     
-    Caso não tenha, escreva 'observação: nenhuma '
+    Caso não tenha, escreva observação: nenhuma 
     `,
         buttons: [
             {
@@ -313,8 +306,8 @@ let anotherTxt = [
 
         tag: "save",
         helper: ["pergunta:", "pergunta :"],
-        title: `       *Responderemos já * \n
-    Sua pergunta foi salva e será respondida assim que possível.
+        title: `       *Responderemos já* \n
+    Sua pergunta foi salva e será respondida assim que possível.😃
     `,
     },
 ]
@@ -350,10 +343,67 @@ let commands =
 {
     question: ["\\comando", "\\comandos"],
     title: `         *Aqui está a lista de comandos*\n
-        `,
+    Para ver essa parte é só digitar \comandos   
+    `,
     error: " *ERRO* \n Os comandos são apenas para Moderadores e Administradores",
 
     list: [
+        // confirm
+        {
+            tag: "confirm",
+            helper: "\\confirmar",
+            type: "Moderator",
+            description: "Confirmar cadastro de um acampante. \nExemplo: \\confirmar Lucas2381",
+        },
+        // deny
+        {
+            tag: "deny",
+            helper: "\\desconfirmar",
+            type: "Moderator",
+            description: "Desconfirmar cadastro de um acampante. \nExemplo \\desconfirmar Lucas2381",
+        },
+
+        // confirm
+        {
+            tag: "contact",
+            helper: "\\contato",
+            type: "Moderator",
+            description: "Retorna o contato do responsável de um acampante. \nExemplo: \\contato Lucas2381",
+            error: "Adolescente {username} não foi encontrado.",
+            contactError: "O contato do responsável de {name} ({username}) não foi encontrado.",
+            title: "Aqui está o contato do responsável por {name} ({username})."
+        },
+
+
+        // findByName
+        {
+            tag: "searchByName",
+            helper: "\\buscarNome",
+            type: "Moderator",
+            description: "Buscar cadastro de um acampante pelo nome. Escrever \\buscar Lucas",
+            title: `           --- *Lista de adolescentes* ---\n`,
+            dependent:"#{number}: {username} - {name} - {birthday}\n ",
+            error: "Nenhum adolescente com '{name}' foi encontrado."
+        },
+        
+        // find
+        {
+            tag: "search",
+            helper: "\\buscar",
+            type: "Moderator",
+            description: "Buscar cadastro de um acampante pelo código. Escrever \\buscar Lucas2381",
+            title: `           --- *Usuário {username}* ---\n
+            Nome: {name},
+            Confirmado(a): {isConfirmed},
+            Nascimento: {birthday},
+            Sexo: {sex},
+            Responsável: {responsible},
+            Telefone do responsável: {phoneNumber},
+            Observação: {observation}
+            `,
+            error: "Adolescente {username} não foi encontrado."
+        },
+        
         // sendC
         {
             tag: "sendConfirmed",
@@ -374,39 +424,6 @@ let commands =
             helper: "\\enviar",
             type: "Administrator",
             description: "Enviar texto para todos que se inscreveram no acampa. Caso queira falar o nome da pessoa, coloque {username} no lugar.\n Exemplo: Oi, {username}!",
-        },
-
-        // confirm
-        {
-            tag: "confirm",
-            helper: "\\confirmar",
-            type: "Moderator",
-            description: "Confirmar cadastro de um acampante. \nExemplo: \\confirmar Lucas2381",
-        },
-        // deny
-        {
-            tag: "deny",
-            helper: "\\desconfirmar",
-            type: "Moderator",
-            description: "Desconfirmar cadastro de um acampante. \nExemplo \\desconfirmar Lucas2381",
-        },
-
-        // find
-        {
-            tag: "search",
-            helper: "\\buscar",
-            type: "Moderator",
-            description: "Buscar cadastro de um acampante. Escrever \\buscar Lucas2381",
-            title: `           --- *Usuário {username}* ---\n
-            Nome: {name},
-            Confirmado(a): {isConfirmed},
-            Nascimento: {birthday},
-            Sexo: {sex},
-            Responsável: {responsible},
-            Telefone do responsável: {phoneNumber},
-            Observação: {observation}
-            `,
-            error: "Adolescente {username} não foi encontrado."
         },
 
         // turnAdmin

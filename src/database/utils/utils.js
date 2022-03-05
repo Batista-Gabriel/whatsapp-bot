@@ -27,7 +27,10 @@ module.exports = {
         function getRnd(min, max) {
             return Math.floor(Math.random() * (max - min)) + min;
         }
-        let userName = name.split(" ")[0] + getRnd(10000, 99999)
-        return userName
+        let num
+        do {
+            num = getRnd(10000, 99999)
+        } while (String(num).includes("666"))
+        return name.split(" ")[0] + num
     }
 }
