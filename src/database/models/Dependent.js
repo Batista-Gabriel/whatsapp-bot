@@ -1,11 +1,10 @@
 const mongoose = require('../index')
-const { capitalizeName} = require('../utils/utils')
+const { capitalizeName, getUserName } = require('../utils/utils')
 const mongoosePaginate = require('mongoose-paginate-v2');
 
 const dependentSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: true,
         trim: true
     },
     username: {
@@ -26,11 +25,14 @@ const dependentSchema = new mongoose.Schema({
     church: {
         type: String,
         trim: true,
-        uppercase:true
     },
     observation: {
         type: String,
         trim: true
+    },
+    checkIn: {
+        type: Boolean,
+        default: false,
     },
     isConfirmed: {
         type: Boolean,
@@ -52,8 +54,11 @@ dependentSchema.pre('updateOne', async function (next) {
     if (this._update.name)
         this._update.name = capitalizeName(this._update.name)
 
-        if (this._update.sex)
-            this._update.sex = capitalizeName(this._update.sex)
+    if (this._update.church)
+        this._update.church = capitalizeName(this._update.church)
+
+    if (this._update.sex)
+        this._update.sex = capitalizeName(this._update.sex)
 
     if (this._update.createdAt)
         delete this._update.createdAt
@@ -64,7 +69,15 @@ dependentSchema.pre('save', async function (next) {
 
     this.createdAt = Date.now()
 
-    this.name = capitalizeName(this.name)
+    if (this.sex) {
+        this.sex = capitalizeName(this.sex)
+        this.username = getUserName(this.sex.substr(0, 3))
+    }
+    if (this.name) {
+        this.name = capitalizeName(this.name)
+        this.username = getUserName(this.name.trim())
+    }
+
     next();
 })
 

@@ -6,7 +6,13 @@ module.exports = {
         try {
             delete input.createdAt
             delete input.lastEditedAt
-            input.username = getUserName(input.name.trim())
+            if (!input.username) {
+                if (input.name)
+                    input.username = getUserName(input.name.trim())
+                else
+                    input.username = getUserName(input.sex.substr(0, 3))
+            }
+
             let dependent = await Dependent.create(input)
             let dependentId = dependent._id
             dependent = await Dependent.findOne({ _id: dependentId })
@@ -33,11 +39,15 @@ module.exports = {
                 if (input[info] == null)
                     delete input[info]
             }
+            if (input.name && (foundDependent[0].username.substr(0, 3) == "Mas" || foundDependent[0].username.substr(0, 3) == "Fem")) {
+                input.username = getUserName(input.name.trim())
+            }
             await Dependent.updateOne({ _id: dependentId }, input)
 
             return await Dependent.findOne({ _id: dependentId }).populate('responsible')
 
         } catch (e) {
+            console.log(e)
             return { error: "Registration failed" }
         }
     },
@@ -75,9 +85,11 @@ module.exports = {
     },
 
     async findByName(name) {
-        name = name.trim()
+        name = name.trim().toLowerCase()
         let response = []
         await Dependent.paginate({}, {
+            lean: true,
+            leanWithId: true,
             sort: { name: 1 },
             populate: [{
                 path: "responsible",
@@ -103,6 +115,8 @@ module.exports = {
         let response = []
         await Dependent.paginate({}, {
             sort: { _id: 1 },
+            lean: true,
+            leanWithId: true,
             populate: [{
                 path: "responsible",
             }],
@@ -126,6 +140,8 @@ module.exports = {
 
     async list(page = 1, sortBy) {
         return await Dependent.paginate({}, {
+            lean: true,
+            leanWithId: true,
             sort: sortBy,
             page: page, limit: 10, populate: [{
                 path: "responsible",

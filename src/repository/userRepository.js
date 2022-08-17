@@ -1,5 +1,6 @@
 const User = require("../database/models/User")
 const userTypeRepository = require("../repository/userTypeRepository")
+const { getUserName } = require('../utils/utils')
 
 module.exports = {
     async create(input) {
@@ -12,7 +13,7 @@ module.exports = {
 
             let newUser = await User.create(input)
             let userId = newUser._id
-            let user = await User.findOne({ _id: userId }).populate('userType')
+            let user = await User.findOne({ _id: userId }).populate('userType').lean()
             user.password = undefined
             user.createdAt = undefined
             user.lastLoggedAt = undefined
@@ -39,6 +40,10 @@ module.exports = {
             for (info in input) {
                 if (input[info] == null)
                     delete input[info]
+            }
+
+            if (input.name) {
+                input.username = getUserName(input.name.trim())
             }
             await User.updateOne({ _id: userId }, input)
 
@@ -116,24 +121,35 @@ module.exports = {
     },
 
     async findByUserType(userType) {
-
+        userType = userType.toLowerCase()
         let response = []
-        await User.find({})
-            .populate('userType')
-            .lean().then((user) => {
 
-                if (!user)
-                    return { error: "user not found" }
-
-                if (user.userType.name == userType)
+        await User.paginate({}, {
+            lean: true,
+            leanWithId: true,
+            sort: { name: 1 },
+            populate: [{
+                path: "userType",
+            }],
+        }, function (err, result) {
+            if (err)
+                return { error: err }
+            result.docs.forEach(user => {
+                if (user.userType.name.toLowerCase().includes(userType)) {
                     response.push(user)
+                }
             })
+            return result
+        });
+
         return response
 
     },
 
     async list(page = 1, sortBy, limit = 1000) {
         return await User.paginate({}, {
+            lean: true,
+            leanWithId: true,
             sort: sortBy,
             page,
             limit,

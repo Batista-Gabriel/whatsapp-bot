@@ -1,4 +1,4 @@
-const whatsapp = require("./src/whatsapp") 
+// require("./src/whatsapp") 
 
 const cookieParser = require("cookie-parser");
 const express = require('express');
@@ -12,7 +12,7 @@ const route = require('./src/routes')
 
 let port = process.env.PORT || 3333
 
-whatsapp.initialize()
+// whatsapp.initialize()
 
 app.use(cookieParser())
 app.use(cors())

@@ -32,5 +32,5 @@ module.exports = {
             num = getRnd(10000, 99999)
         } while (String(num).includes("666"))
         return name.split(" ")[0] + num
-    }
+    },
 }

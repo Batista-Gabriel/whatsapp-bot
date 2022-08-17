@@ -26,8 +26,8 @@ module.exports = {
 
         try {
             const userId = req.params.id
-            const { name, username, phoneNumber, password } = req.body
-            let data = { name, username, phoneNumber, password }
+            const { name, username, phoneNumber, password, lastInteraction, errorCount } = req.body
+            let data = { name, username, phoneNumber, password, lastInteraction, errorCount }
 
             const isDataEmpty = Object.values(data).every(x => x === null || x === '');
 
@@ -35,6 +35,24 @@ module.exports = {
                 return res.status(400).send("Data not found")
 
             let response = await userRepository.update(userId, data)
+            if (response.error)
+                return res.status(404).send(response)
+            else
+                return res.send(response)
+
+
+        } catch (e) {
+            await createLog(e, "Error")
+        }
+    },
+
+    async updateUserType(req, res) {
+
+        try {
+            const userId = req.params.id
+            const { userType } = req.body
+
+            let response = await userRepository.updateUserType(userId, userType)
             if (response.error)
                 return res.status(404).send(response)
             else
@@ -57,7 +75,6 @@ module.exports = {
             return res.send({ user: response, token })
         }
     },
-
 
     async find(req, res) {
         let authorization = req.headers.authorization
@@ -90,20 +107,20 @@ module.exports = {
     },
 
     async findByNumber(req, res) {
-        let authorization = req.headers.authorization
         let { number } = req.params
-        // let auth = authMiddleware(authorization)
-        // if (auth.error)
-        //     return res.status("401").send(auth)
-
         let response = await userRepository.findByNumber(number)
         if (response.error)
             return res.status(404).send(response)
         else
             return res.send(response)
-
-
-
+    },
+    async findByUserType(req, res) {
+        let { userType } = req.params
+        let response = await userRepository.findByUserType(userType)
+        if (response.error)
+            return res.status(404).send(response)
+        else
+            return res.send(response)
     },
     async checkAuth(req, res) {
 

@@ -42,7 +42,7 @@ module.exports = {
             }
 
         } catch (e) {
-            await createLog(e, "Error")
+            console.log(e)
         }
     },
 

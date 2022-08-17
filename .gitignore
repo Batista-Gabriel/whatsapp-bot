@@ -2,3 +2,5 @@
 .vscode
 node_modules
 .VSCodeCounter
+src/whatsapp/tokens/acampa
+src/whatsapp/tokens/bot-acampa

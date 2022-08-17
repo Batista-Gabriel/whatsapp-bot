@@ -6,7 +6,6 @@ const mongoosePaginate = require('mongoose-paginate-v2');
 const UserSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: true,
         trim: true
     },
     username: {
@@ -24,6 +23,15 @@ const UserSchema = new mongoose.Schema({
         type: String,
         select: false,
         trim: true
+    },
+    lastInteraction: {
+        type: String,
+        trim: true,
+        default:""
+    },
+    errorCount: {
+        type: Number,
+        default: 0
     },
     userType:
         { type: mongoose.Schema.Types.ObjectId, ref: 'userType', }
@@ -53,11 +61,13 @@ UserSchema.pre('updateOne', async function (next) {
 })
 UserSchema.pre('save', async function (next) {
     this.createdAt = Date.now()
-    if (!this.username) {
+    if (this.name && !this.username) {
         this.username = getUserName(this.name.trim())
+    } else if (!this.username) {
+        this.username = getUserName(this.phoneNumber.substr(0,5))
     }
-
-    this.name = capitalizeName(this.name)
+    if (this.name)
+        this.name = capitalizeName(this.name)
     if (this.password) {
         const hash = await bcrypt.hash(this.password, 10)
         this.password = hash;

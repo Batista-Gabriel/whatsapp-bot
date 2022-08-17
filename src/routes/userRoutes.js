@@ -9,8 +9,10 @@ routes.get('/checkauth', userController.checkAuth);
 routes.use(checkAdminPrivilege)
 routes.post('', userController.create);
 routes.get('', userController.list);
+routes.put('/userType/:id', userController.updateUserType);
 routes.put('/:id', userController.update);
 routes.get('/number/:number', userController.findByNumber);
+routes.get('/userType/:userType', userController.findByUserType);
 routes.get('/:id', userController.find);
 routes.delete('/:id', userController.delete);
 

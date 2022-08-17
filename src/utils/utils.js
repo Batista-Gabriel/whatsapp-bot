@@ -49,5 +49,17 @@ module.exports = {
         }
         let userName = name.split(" ")[0] + getRnd(10000, 99999)
         return userName
+    },
+
+    getAge(birthday, startDay) {
+        var startDate = new Date(startDay)
+        // var startDate = new Date();
+        var birthDate = new Date(birthday);
+        var age = startDate.getFullYear() - birthDate.getFullYear();
+        var m = startDate.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && startDate.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        return age;
     }
 }

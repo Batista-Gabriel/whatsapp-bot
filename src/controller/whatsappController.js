@@ -8,9 +8,25 @@ module.exports = {
         // return res.status(401).send("Unauthorized")
 
         if (!contacts || !groupId)
-            return res.status(400).send("Contacts our group Id not found")
+            return res.status(400).send("Contacts or group Id not found")
         else {
             let response = await whatsapp.addToGroup(groupId, contacts)
+
+            if (response.error)
+                return res.status("400").send(response)
+            else
+                return res.send(response)
+        }
+    },
+    async rmvFromGroup(req, res) {
+        var { contacts, groupId } = req.body
+        // if(!isAdmin(id))
+        // return res.status(401).send("Unauthorized")
+
+        if (!contacts || !groupId)
+            return res.status(400).send("Contacts or group Id not found")
+        else {
+            let response = await whatsapp.rmvFromGroup(groupId, contacts)
 
             if (response.error)
                 return res.status("400").send(response)
